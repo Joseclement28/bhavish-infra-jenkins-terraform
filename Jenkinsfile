@@ -52,6 +52,26 @@ pipeline {
         }
     }
 
+        stage('Terraform Destroy') {
+            when {
+                expression { return params.DESTROY == true }
+            }
+            input {
+                message "⚠️ Confirm Terraform Destroy?"
+                ok "Destroy Infrastructure"
+            }
+            steps {
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'aws-creds'
+                ]]) {
+                    sh '''
+                      terraform destroy -auto-approve
+                    '''
+                }
+            }
+        }
+
     post {
         success {
             echo "Infrastructure provisioned successfully 🚀"
