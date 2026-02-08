@@ -1,6 +1,14 @@
 pipeline {
     agent any
 
+    parameters {
+        booleanParam(
+            name: 'DESTROY',
+            defaultValue: false,
+            description: 'Destroy infrastructure'
+        )
+    }
+
     environment {
         AWS_DEFAULT_REGION = "ap-south-1"
         TF_PLUGIN_CACHE_DIR = "${WORKSPACE}/.terraform.d/plugin-cache"
@@ -23,38 +31,50 @@ pipeline {
 
         stage('Terraform Init') {
             steps {
-                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
-                                  credentialsId: 'aws-creds']]) {
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'aws-creds'
+                ]]) {
                     sh 'terraform init -reconfigure'
                 }
             }
         }
 
         stage('Terraform Plan') {
+            when {
+                expression { return !params.DESTROY }
+            }
             steps {
-                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
-                                  credentialsId: 'aws-creds']]) {
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'aws-creds'
+                ]]) {
                     sh 'terraform plan -out=tfplan'
                 }
             }
         }
 
         stage('Terraform Apply') {
+            when {
+                expression { return !params.DESTROY }
+            }
             input {
                 message "Approve Terraform Apply?"
+                ok "Apply"
             }
             steps {
-                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
-                                  credentialsId: 'aws-creds']]) {
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'aws-creds'
+                ]]) {
                     sh 'terraform apply -auto-approve tfplan'
                 }
             }
         }
-    }
 
         stage('Terraform Destroy') {
             when {
-                expression { return params.DESTROY == true }
+                expression { return params.DESTROY }
             }
             input {
                 message "⚠️ Confirm Terraform Destroy?"
@@ -65,16 +85,15 @@ pipeline {
                     $class: 'AmazonWebServicesCredentialsBinding',
                     credentialsId: 'aws-creds'
                 ]]) {
-                    sh '''
-                      terraform destroy -auto-approve
-                    '''
+                    sh 'terraform destroy -auto-approve'
                 }
             }
         }
+    }
 
     post {
         success {
-            echo "Infrastructure provisioned successfully 🚀"
+            echo "Pipeline completed successfully ✅"
         }
         failure {
             echo "Pipeline failed ❌"
