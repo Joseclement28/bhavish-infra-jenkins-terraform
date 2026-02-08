@@ -9,7 +9,7 @@ variable "key_name" {}
 variable "private_ip" {}
 
 variable "ebs_size" {
-  default = 30
+  default = 10
 }
 
 variable "allowed_ingress" {

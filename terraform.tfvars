@@ -8,4 +8,4 @@ instance_type = "t3.micro"
 key_name      = "production"
 private_ip    = "192.168.10.100"
 
-ebs_size      = 30
+ebs_size      = 10
