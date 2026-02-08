@@ -3,6 +3,7 @@ pipeline {
 
     environment {
         AWS_DEFAULT_REGION = "ap-south-1"
+        TF_PLUGIN_CACHE_DIR = "${WORKSPACE}/.terraform.d/plugin-cache"
     }
 
     stages {
@@ -14,11 +15,19 @@ pipeline {
             }
         }
 
+        stage('Prepare Terraform Cache') {
+            steps {
+                sh '''
+                  mkdir -p $TF_PLUGIN_CACHE_DIR
+                '''
+            }
+        }
+
         stage('Terraform Init') {
             steps {
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
                                   credentialsId: 'aws-creds']]) {
-                    sh 'terraform init'
+                    sh 'terraform init -upgrade'
                 }
             }
         }
