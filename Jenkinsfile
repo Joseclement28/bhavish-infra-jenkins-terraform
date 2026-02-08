@@ -17,9 +17,7 @@ pipeline {
 
         stage('Prepare Terraform Cache') {
             steps {
-                sh '''
-                  mkdir -p $TF_PLUGIN_CACHE_DIR
-                '''
+                sh 'mkdir -p $TF_PLUGIN_CACHE_DIR'
             }
         }
 
@@ -27,14 +25,8 @@ pipeline {
             steps {
                 withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
                                   credentialsId: 'aws-creds']]) {
-                    sh 'terraform init -upgrade'
+                    sh 'terraform init -reconfigure'
                 }
-            }
-        }
-
-        stage('Terraform Validate') {
-            steps {
-                sh 'terraform validate'
             }
         }
 
