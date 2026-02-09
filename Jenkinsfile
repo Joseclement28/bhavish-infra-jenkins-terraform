@@ -5,7 +5,7 @@ pipeline {
         booleanParam(
             name: 'DESTROY',
             defaultValue: false,
-            description: 'Destroy infrastructure'
+            description: 'Destroy Terraform infrastructure'
         )
     }
 
@@ -41,9 +41,6 @@ pipeline {
         }
 
         stage('Terraform Plan') {
-            when {
-                expression { return !params.DESTROY }
-            }
             steps {
                 withCredentials([[
                     $class: 'AmazonWebServicesCredentialsBinding',
@@ -54,13 +51,19 @@ pipeline {
             }
         }
 
-        stage('Terraform Apply') {
+        stage('Approve Terraform Apply') {
             when {
                 expression { return !params.DESTROY }
             }
             input {
                 message "Approve Terraform Apply?"
-                ok "Apply"
+                ok "Proceed with Apply"
+            }
+        }
+
+        stage('Terraform Apply') {
+            when {
+                expression { return !params.DESTROY }
             }
             steps {
                 withCredentials([[
@@ -96,7 +99,10 @@ pipeline {
             echo "Pipeline completed successfully ✅"
         }
         failure {
-            echo "Pipeline failed ❌"
+            echo "Pipeline failed ❌ — execution stopped"
+        }
+        aborted {
+            echo "Pipeline aborted by user ⛔"
         }
     }
 }
