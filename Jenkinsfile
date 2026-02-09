@@ -55,9 +55,11 @@ pipeline {
             when {
                 expression { return !params.DESTROY }
             }
-            input {
-                message "Approve Terraform Apply?"
-                ok "Proceed with Apply"
+            steps {
+                input {
+                    message "Approve Terraform Apply?"
+                    ok "Proceed with Apply"
+                }
             }
         }
 
