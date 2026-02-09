@@ -81,11 +81,11 @@ pipeline {
             when {
                 expression { return params.DESTROY }
             }
-            input {
-                message "⚠️ Confirm Terraform Destroy?"
-                ok "Destroy Infrastructure"
-            }
             steps {
+                input {
+                    message "⚠️ Confirm Terraform Destroy?"
+                    ok "Destroy Infrastructure"
+                }
                 withCredentials([[
                     $class: 'AmazonWebServicesCredentialsBinding',
                     credentialsId: 'aws-creds'
