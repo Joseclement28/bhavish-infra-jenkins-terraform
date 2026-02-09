@@ -53,19 +53,17 @@ pipeline {
 
         stage('Approve Terraform Apply') {
             when {
-                expression { return !params.DESTROY }
+                expression { !params.DESTROY }
             }
             steps {
-                input {
-                    message "Approve Terraform Apply?"
-                    ok "Proceed with Apply"
-                }
+                input message: 'Approve Terraform Apply?',
+                      ok: 'Proceed with Apply'
             }
         }
 
         stage('Terraform Apply') {
             when {
-                expression { return !params.DESTROY }
+                expression { !params.DESTROY }
             }
             steps {
                 withCredentials([[
@@ -79,13 +77,11 @@ pipeline {
 
         stage('Terraform Destroy') {
             when {
-                expression { return params.DESTROY }
+                expression { params.DESTROY }
             }
             steps {
-                input {
-                    message "⚠️ Confirm Terraform Destroy?"
-                    ok "Destroy Infrastructure"
-                }
+                input message: '⚠️ Confirm Terraform Destroy?',
+                      ok: 'Destroy Infrastructure'
                 withCredentials([[
                     $class: 'AmazonWebServicesCredentialsBinding',
                     credentialsId: 'aws-creds'
